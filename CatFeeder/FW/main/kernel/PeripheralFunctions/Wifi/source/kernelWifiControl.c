@@ -1,5 +1,5 @@
 
-#include <ESP8266WiFi.h>
+#include "../header/kernelWifiControl.h"
 
 void InitialWifi()
 {
@@ -13,6 +13,7 @@ void InitialWifi()
   delay(100);  
 }
 
+// search for wifi name 
 void kernelWifiSearch(){
   String ssid;
   int32_t rssi;
