@@ -1,7 +1,0 @@
-
-#define PCB_TYPE _ESP_8266
-#define POWER_LED_PIN LED_BUILTIN
-#define MOTOR_PIN_A D1
-#define MOTOR_PIN_AP D2
-#define MOTOR_PIN_B D3
-#define MOTOR_PIN_BP D4
