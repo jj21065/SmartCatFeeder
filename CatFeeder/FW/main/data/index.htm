@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ESP8266 Smart Home project</title>
+    <link href="css/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+      body {
+        font-family: "微軟正黑體", "黑體-繁", sans-serif;
+      }
+      #slider {
+        width: 300px;
+        margin: 15px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>餵食器控制器</h1>
+    <p>
+      <img
+        src="css/images/cat_pic.png"
+        width="184"
+        height="185"
+        alt="cover image"
+      />
+    </p>
+    飼料量：
+    <div id="slider"></div>
+    送出飼料
+    <div>
+      <button
+        id="GoButton"
+        type="button"
+        id="FeedButton"
+        class="FeedSW"
+        value="Go"
+        name="FeedSW"
+        (click)="test"
+      >
+        GO
+      </button>
+    </div>
+    LED開關：
+    <div id="LED_SW">
+      <input type="radio" id="LED_ON" class="SW" value="ON" name="SW" /><label
+        for="LED_ON"
+      >
+        開
+      </label>
+      <input
+        type="radio"
+        id="LED_OFF"
+        class="SW"
+        checked="checked"
+        value="OFF"
+        name="SW"
+      /><label for="LED_OFF"> 關 </label>
+    </div>
+    <p>
+      My github《<a href="https://github.com/jj21065?tab=repositories"
+        >SmartCatFeeder</a
+      >》
+    </p>
+    <script src="js/jquery-1.12.1.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script>
+      var light = 127;
+
+      $(function () {
+        // $(".FeedSW").click(function (evt) {
+        //   // var state = $(this).val();
+        //   var state = "go";
+        //   $.post("/feed", { feed: state });
+        // });
+        var btn = document.querySelector(".FeedSW");
+        btn.onclick = function () {
+          console.log("click");
+          var state = "go";
+          $.post("/feed", { feed: state });
+        };
+
+        $("#LED_SW").buttonset();
+        $(".SW").change(function (evt) {
+          console.log(".SW");
+
+          var state = $(this).val();
+          $.post("/sw", { led: state });
+        });
+
+        $("#slider").slider({
+          orientation: "horizontal",
+          range: "max",
+          max: 255,
+          value: 127,
+          change: function () {
+            var val = $(this).slider("value");
+            $.post("/foodAmount", { food: val });
+          },
+        });
+      });
+    </script>
+  </body>
+</html>

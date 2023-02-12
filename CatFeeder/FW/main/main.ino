@@ -9,7 +9,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  delay(100);
+  delay(1000);
 }
 
 void loop()

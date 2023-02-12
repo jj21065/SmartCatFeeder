@@ -1,8 +1,9 @@
 #include <Arduino.h>
+#include <stdlib.h>
 #include "UserCommonWebControl.h"
 #include "../../Scaler/ScalerInclude.h"
 #include "../Extruder/UserCommonExtruder.h"
-const byte LED_PIN = 2;
+// const byte LED_PIN = 2;
 const byte PWM_PIN = 0;
 
 // 定義處理首頁請求的自訂函式
@@ -60,20 +61,20 @@ void UserCommonWebServerProcess(String state)
 {
     if (state == "ON")
     {
-        //UserCommonExtruderExtract(100);
-        digitalWrite(LED_PIN, HIGH);
+        // UserCommonExtruderPush(180);
+        //  digitalWrite(LED_PIN, HIGH);
     }
     else if (state == "OFF")
     {
-        //UserCommonExtruderExtract(100);
-        digitalWrite(LED_PIN, LOW);
+        // UserCommonExtruderExtract(-90);
+        // digitalWrite(LED_PIN, LOW);
     }
 }
 
 void UserCommonWebServerSettingInitial()
 {
     ScalerWifiMangagerInitial();
-    pinMode(LED_PIN, OUTPUT);
+    // pinMode(LED_PIN, OUTPUT);
 
     SPIFFS.begin(); // 啟用SPIFFS檔案系統
 
@@ -113,20 +114,24 @@ void UserCommonWebServerSettingInitial()
 
     server.on("/sw", []()
               {
-     String state = server.arg("led");
-     UserCommonWebServerProcess(state);
-
-
-     Serial.print("LED_PIN: ");
-     Serial.println(state); });
-
-    server.on("/pwm", []()
+                String state = server.arg("led");
+                // UserCommonExtruderRun();
+                Serial.println(state); });
+    server.on("/feed", []()
               {
-     String pwm = server.arg("led");
-     int val = pwm.toInt();
-     //analogWrite(PWM_PIN, val);
-     Serial.print("PWM: ");
-     Serial.println(val); });
+                String state = server.arg("feed");
+                UserCommonExtruderRun();
+                Serial.print("feed state: ");
+                Serial.println(state); });
+
+    server.on("/foodAmount", []()
+              {
+                  String pwm = server.arg("food");
+                  int val = pwm.toInt();
+                  UserCommonExtruderSetValue(val);
+
+                  // analogWrite(PWM_PIN, val);
+              });
 
     // 處理根路徑以及「不存在的」路徑
     server.onNotFound([]()

@@ -2,6 +2,7 @@
 #define USERCOMMONEXTRUDER_H
 #include "../../../PinshareSetting.h"
 void UserCommonExtruderInitial();
-void UserCommonExtruderPush(int count);
-void UserCommonExtruderExtract(int count);
+void UserCommonExtruderRun();
+void UserCommonExtruderSetValue(int value);
+void UserCommonExtruderHandler();
 #endif
