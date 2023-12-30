@@ -5,4 +5,5 @@ void UserCommonExtruderInitial();
 void UserCommonExtruderRun();
 void UserCommonExtruderSetValue(int value);
 void UserCommonExtruderHandler();
+void UserCommonTestDigitalOutput(bool enable);
 #endif

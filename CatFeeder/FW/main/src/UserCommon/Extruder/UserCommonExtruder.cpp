@@ -71,3 +71,25 @@ void UserCommonExtruderSetValue(int value)
     Serial.println(value);
     targetDegrees = value;
 }
+
+void UserCommonTestDigitalOutput(bool enable)
+{
+    pinMode(2, OUTPUT);
+    digitalWrite(2, enable);
+    if (enable)
+    {
+        pinMode(14, OUTPUT); // D5
+        digitalWrite(14, LOW);
+        delay(3000);
+
+        pinMode(14, OUTPUT); // D5
+        digitalWrite(14, HIGH);
+
+        pinMode(12, OUTPUT); // D6
+        digitalWrite(12, LOW);
+        delay(200);
+
+        pinMode(12, OUTPUT); // D6
+        digitalWrite(12, HIGH);
+    }
+}

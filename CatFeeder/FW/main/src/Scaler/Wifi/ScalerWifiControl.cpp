@@ -8,7 +8,8 @@ bool portalRunning = false;
 bool startAP = true; // 僅啟動網站伺服器，設成true則啟動AP和網站伺服器。
 /// end wifi manager
 extern const char *host = "laifuHost";
-extern ESP8266WebServer server(80);
+extern ESP8266WebServer server(1025);
+
 void ScalerWifiMangagerInitial()
 {
   WiFi.mode(WIFI_STA); // Wi-Fi設置成STA模式；預設模式為STA+AP
@@ -101,7 +102,77 @@ void InitialWifiSearch()
   delay(100);
 }
 
-// search for wifi name
+void HttpPost(char *httphost)
+{
+  if ((WiFi.status() == WL_CONNECTED))
+  {
+
+    WiFiClient client;
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin(client, httphost); // HTTP
+    http.addHeader("Content-Type", "application/json");
+
+    Serial.print("[HTTP] POST...\n");
+    // start connection and send HTTP header and body
+    // int httpCode = http.POST("{\"hello\":\"world\"}");
+    int httpCode = http.POST("");
+    // httpCode will be negative on error
+    if (httpCode > 0)
+    {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] POST... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK)
+      {
+        const String &payload = http.getString();
+        Serial.println("received payload:\n<<");
+        Serial.println(payload);
+        Serial.println(">>");
+      }
+    }
+    else
+    {
+      Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+}
+
+String HttpGet(char *httphost)
+{
+  HTTPClient http;
+  WiFiClient client;
+  String payload = "fail";
+  http.setTimeout(10000);
+  // Send HTTP GET request to WorldTimeAPI
+  http.begin(client, httphost);
+  int httpCode = http.GET();
+  Serial.println(httpCode);
+  if (httpCode > 0)
+  {
+
+    if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY)
+    {
+      payload = http.getString();
+      Serial.println(payload);
+      // Serial.println("get time.");
+    }
+  }
+  else
+  {
+    Serial.println("Failed to connect to API");
+  }
+
+  http.end();
+  return payload;
+}
+
+// search for wifi name (test, not yet ready)
 void kernelWifiSearch()
 {
   String ssid;

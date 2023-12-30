@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -13,6 +12,9 @@
         width: 300px;
         margin: 15px;
       }
+      #timerSettings {
+        margin-top: 20px;
+      }
     </style>
   </head>
 
@@ -20,7 +22,7 @@
     <h1>餵食器控制器</h1>
     <p>
       <img
-        src="css/images/cat_pic.png"
+        src="css/images/cat_pic.jpg"
         width="184"
         height="185"
         alt="cover image"
@@ -31,13 +33,12 @@
     送出飼料
     <div>
       <button
-        id="GoButton"
         type="button"
         id="FeedButton"
         class="FeedSW"
         value="Go"
         name="FeedSW"
-        (click)="test"
+        onClick="test"
       >
         GO
       </button>
@@ -46,9 +47,8 @@
     <div id="LED_SW">
       <input type="radio" id="LED_ON" class="SW" value="ON" name="SW" /><label
         for="LED_ON"
+        >開</label
       >
-        開
-      </label>
       <input
         type="radio"
         id="LED_OFF"
@@ -58,17 +58,50 @@
         name="SW"
       /><label for="LED_OFF"> 關 </label>
     </div>
+
+    <!-- New functionalities: Current Time and Timer Settings -->
+    <div id="currentTime">
+      <p>當前時間: <span id="currentDateTime"></span></p>
+    </div>
+    <div id="timerSettings">
+      <h3>手動設定定時功能</h3>
+      <label for="daysOfWeek">選擇星期：</label>
+      <select id="daysOfWeek" multiple>
+        <option value="星期一">星期一</option>
+        <option value="星期二">星期二</option>
+        <option value="星期三">星期三</option>
+        <option value="星期四">星期四</option>
+        <option value="星期五">星期五</option>
+        <option value="星期六">星期六</option>
+        <option value="星期日">星期日</option>
+      </select>
+      <br />
+      <label for="hour">小時：</label>
+      <input type="number" id="hour" min="0" max="23" />
+      <br />
+      <label for="minute">分鐘：</label>
+      <input type="number" id="minute" min="0" max="59" />
+      <br />
+      <button id="addTimerButton">Add</button>
+      <button id="removeTimerButton">Remove</button>
+
+      <!-- List to display added timers -->
+      <h3>定時清單</h3>
+      <ul id="timerList"></ul>
+    </div>
+
     <p>
       My github《<a href="https://github.com/jj21065?tab=repositories"
         >SmartCatFeeder</a
       >》
     </p>
+
     <script src="js/jquery-1.12.1.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
     <script>
       var light = 127;
-
       $(function () {
+        // Existing code...
         // $(".FeedSW").click(function (evt) {
         //   // var state = $(this).val();
         //   var state = "go";
@@ -99,6 +132,49 @@
             $.post("/foodAmount", { food: val });
           },
         });
+        // Fetch current time from the internet
+        function getCurrentTime() {
+          // $.get("https://worldtimeapi.org/api/ip", function (data) {
+          //   var currentDateTime = data.utc_datetime;
+          //   $("#currentDateTime").text(currentDateTime);
+          // });
+
+          var localDateTime = new Date().toLocaleString();
+          $("#currentDateTime").text(localDateTime);
+        }
+
+        // Manual timer settings
+        $("#addTimerButton").click(function () {
+          var selectedDays = $("#daysOfWeek").val();
+          var selectedHour = $("#hour").val();
+          var selectedMinute = $("#minute").val();
+
+          // Add timer to the list with checkbox
+          var timerText =
+            "星期" +
+            selectedDays.join(", ") +
+            " " +
+            selectedHour +
+            ":" +
+            selectedMinute;
+          $("<li>")
+            .html('<input type="checkbox">' + timerText)
+            .appendTo("#timerList");
+
+          // Clear input fields
+          $("#hour, #minute").val("");
+        });
+
+        // Remove selected timer from the list
+        $("#removeTimerButton").click(function () {
+          $("#timerList input[type=checkbox]:checked").closest("li").remove();
+        });
+
+        // Fetch current time on page load
+        getCurrentTime();
+
+        // Update current time every 1 minute (adjust as needed)
+        setInterval(getCurrentTime, 10000);
       });
     </script>
   </body>

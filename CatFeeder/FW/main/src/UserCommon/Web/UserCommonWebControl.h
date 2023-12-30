@@ -5,4 +5,7 @@
 void UserCommonWebServerSettingInitial();
 
 void UserCommonWebServerHandler();
+
+// void UserCommonWebCurrentTime()
+
 #endif

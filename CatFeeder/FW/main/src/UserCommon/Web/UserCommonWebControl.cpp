@@ -116,6 +116,10 @@ void UserCommonWebServerSettingInitial()
               {
                 String state = server.arg("led");
                 // UserCommonExtruderRun();
+                if(state == "ON")
+                    UserCommonTestDigitalOutput(true);
+                else
+                    UserCommonTestDigitalOutput(false);
                 Serial.println(state); });
     server.on("/feed", []()
               {
@@ -146,8 +150,22 @@ void UserCommonWebServerSettingInitial()
     MDNS.addService("http", "tcp", 80);
 }
 
+void UserCommonWebCurrentTime()
+{
+    String payload = HttpGet("http://worldtimeapi.org/api/timezone/Asia/Taipei");
+    // Parse the JSON response to get the UTC datetime
+    // Note: You may need to use a JSON parsing library for more robust parsing
+    int startIndex = payload.indexOf("\"datetime\":\"") + 12;
+    int endIndex = payload.indexOf("\"day_of_week\"");
+    String currentDateTime = payload.substring(startIndex, endIndex);
+
+    Serial.println("Current DateTime: " + currentDateTime);
+    // Current DateTime : "," client_ip ":" 36.230.186.98 "," datetime ":" 2023 - 12 - 30T12 : 06 : 00.090198 + 08 : 00 "," day_of_week ":6," day_of_year ":364," dst ":false," dst_from ":null," dst_offset ":0," dst_until ":null," raw_offset ":28800," timezone ":" Asia / Taipei "," unixtime ":1703909160," utc_datetime ":"
+}
+
 void UserCommonWebServerHandler()
 {
     ScalerDoWiFiManager();
     ScalerWebServerHandler();
+    // getCurrentTime();
 }

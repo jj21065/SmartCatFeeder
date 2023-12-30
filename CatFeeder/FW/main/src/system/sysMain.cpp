@@ -14,13 +14,23 @@ void sysMainProcess()
         UserCommonWebServerHandler();
 
         UserCommonExtruderHandler();
-        // delay(300);
+
+        delay(1000);
     }
 }
 
 void sysMainInitial()
 {
+
+    pinMode(14, OUTPUT); // D5
+    digitalWrite(14, HIGH);
+
+    pinMode(12, OUTPUT); // D6
+    digitalWrite(12, HIGH);
+
     UserCommonExtruderInitial();
 
     UserCommonWebServerSettingInitial();
+
+    // UserCommonTimerActive();
 }
