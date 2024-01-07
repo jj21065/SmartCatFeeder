@@ -15,7 +15,7 @@ void sysMainProcess()
 
         UserCommonExtruderHandler();
 
-        delay(1000);
+        delay(200);
     }
 }
 

@@ -1,5 +1,7 @@
 #include <Arduino.h>
+#include <Arduino_JSON.h>
 #include "ScalerWifiControl.h"
+
 WiFiManager wm; // 建立WiFi管理員物件
 
 unsigned int timeout = 120; // Wi-Fi管理員的運作秒數
@@ -132,6 +134,7 @@ void HttpPost(char *httphost)
         Serial.println("received payload:\n<<");
         Serial.println(payload);
         Serial.println(">>");
+        DecodeJson(payload);
       }
     }
     else
@@ -172,6 +175,38 @@ String HttpGet(char *httphost)
   return payload;
 }
 
+void DecodeJson(const String payload)
+{
+  JSONVar myObject = JSON.parse(payload);
+  String decodeArr[5];
+  // JSON.typeof(jsonVar) can be used to get the type of the var
+  if (JSON.typeof(myObject) == "undefined")
+  {
+    Serial.println("Parsing input failed!");
+    return;
+  }
+
+  Serial.print("JSON object = ");
+  Serial.println(myObject);
+
+  // myObject.keys() can be used to get an array of all the keys in the object
+  JSONVar keys = myObject.keys();
+
+  for (int i = 0; i < keys.length(); i++)
+  {
+    JSONVar value = myObject[keys[i]];
+    Serial.print(keys[i]);
+    Serial.print(" = ");
+    Serial.println(value);
+    decodeArr[i] = String(value);
+  }
+  Serial.print("1 = ");
+  Serial.println(decodeArr[0]);
+  Serial.print("2 = ");
+  Serial.println(decodeArr[1]);
+  Serial.print("3 = ");
+  Serial.println(decodeArr[2]);
+}
 // search for wifi name (test, not yet ready)
 void kernelWifiSearch()
 {

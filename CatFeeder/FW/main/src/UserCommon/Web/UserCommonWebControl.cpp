@@ -1,11 +1,70 @@
 #include <Arduino.h>
 #include <stdlib.h>
+#include <Arduino_JSON.h>
+
 #include "UserCommonWebControl.h"
 #include "../../Scaler/ScalerInclude.h"
 #include "../Extruder/UserCommonExtruder.h"
 // const byte LED_PIN = 2;
 const byte PWM_PIN = 0;
+// GET/ POST API
+void PostUpdateFeed()
+{
+    String payload = server.arg(0);
+    // UserCommonExtruderRun();
+    JSONVar myObject = JSON.parse(payload);
 
+    // JSON.typeof(jsonVar) can be used to get the type of the var
+    if (JSON.typeof(myObject) == "undefined")
+    {
+        Serial.println("Parsing input failed!");
+        return;
+    }
+
+    Serial.print("JSON object = ");
+    Serial.println(myObject);
+
+    // myObject.keys() can be used to get an array of all the keys in the object
+    JSONVar keys = myObject.keys();
+    if (keys.length() > 0)
+    {
+        JSONVar value = myObject["amount"];
+        server.send(200, "text/plain", "POST body was:\n" + server.arg("plain"));
+    }
+
+    UserCommonManualFeedOutput(((String)value).toInt());
+}
+
+void PostUpdateFeedSchedule()
+{
+    String payload = server.arg(0);
+    // DecodeJson(payload);
+    JSONVar myObject = JSON.parse(payload);
+
+    // JSON.typeof(jsonVar) can be used to get the type of the var
+    if (JSON.typeof(myObject) == "undefined")
+    {
+        Serial.println("Parsing input failed!");
+        return;
+    }
+
+    Serial.print("JSON object = ");
+    Serial.println(myObject);
+
+    // myObject.keys() can be used to get an array of all the keys in the object
+    JSONVar keys = myObject.keys();
+
+    for (int i = 0; i < keys.length(); i++)
+    {
+        JSONVar value = myObject[keys[i]];
+        Serial.print(keys[i]);
+        Serial.print(" = ");
+        Serial.println(value);
+        // decodeArr[i] = String(value);
+    }
+
+    server.send(200, "text/plain", "POST body was:\n" + server.arg("plain"));
+}
 // 定義處理首頁請求的自訂函式
 String getContentType(String filename)
 {
@@ -47,6 +106,7 @@ bool handleFileRead(String path)
     String pathWithGz = path + ".gz";
     if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path))
     {
+        Serial.println("file found: " + pathWithGz);
         if (SPIFFS.exists(pathWithGz))
             path += ".gz";
         File file = SPIFFS.open(path, "r");
@@ -116,37 +176,24 @@ void UserCommonWebServerSettingInitial()
               {
                 String state = server.arg("led");
                 // UserCommonExtruderRun();
-                if(state == "ON")
-                    UserCommonTestDigitalOutput(true);
-                else
-                    UserCommonTestDigitalOutput(false);
+                // if(state == "ON")
+                //     UserCommonTestDigitalOutput(true);
+                // else
+                //     UserCommonTestDigitalOutput(false);
                 Serial.println(state); });
-    server.on("/feed", []()
-              {
-                String state = server.arg("feed");
-                UserCommonExtruderRun();
-                Serial.print("feed state: ");
-                Serial.println(state); });
-
-    server.on("/foodAmount", []()
-              {
-                  String pwm = server.arg("food");
-                  int val = pwm.toInt();
-                  UserCommonExtruderSetValue(val);
-
-                  // analogWrite(PWM_PIN, val);
-              });
+    server.on("/feed", PostUpdateFeed);
+    server.on("/feedSchedule", PostUpdateFeedSchedule);
 
     // 處理根路徑以及「不存在的」路徑
     server.onNotFound([]()
                       {
-    if(!handleFileRead(server.uri()))
-      server.send(404, "text/plain", "FileNotFound"); });
+        if (!handleFileRead(server.uri()))
+            server.send(404, "text/plain", "FileNotFound"); });
 
     server.begin();
     Serial.println("HTTP server started");
 
-    MDNS.setInstanceName("Cubie's ESP8266");
+    MDNS.setInstanceName("Jake's ESP8266");
     MDNS.addService("http", "tcp", 80);
 }
 

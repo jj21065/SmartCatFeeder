@@ -72,24 +72,32 @@ void UserCommonExtruderSetValue(int value)
     targetDegrees = value;
 }
 
-void UserCommonTestDigitalOutput(bool enable)
+void UserCommonManualFeedOutput(int amount)
 {
+    Serial.print("feed amount: ");
+    Serial.println(amount);
     pinMode(2, OUTPUT);
-    digitalWrite(2, enable);
-    if (enable)
+    digitalWrite(2, HIGH);
+    if (amount > 0)
     {
-        pinMode(14, OUTPUT); // D5
+        pinMode(14, OUTPUT); // D5 blue
         digitalWrite(14, LOW);
         delay(3000);
-
         pinMode(14, OUTPUT); // D5
         digitalWrite(14, HIGH);
+        for (int i = 0; i < amount; i++)
+        {
+            pinMode(12, OUTPUT); // D6 purple
+            digitalWrite(12, LOW);
+            delay(200);
 
-        pinMode(12, OUTPUT); // D6
-        digitalWrite(12, LOW);
-        delay(200);
+            pinMode(12, OUTPUT); // D6
+            digitalWrite(12, HIGH);
 
-        pinMode(12, OUTPUT); // D6
-        digitalWrite(12, HIGH);
+            delay(1500);
+            Serial.print("feed done : ");
+            Serial.println(i);
+        }
     }
+    digitalWrite(2, LOW);
 }

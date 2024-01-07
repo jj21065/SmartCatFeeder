@@ -26,4 +26,7 @@ void InitialWifiSearch();
 void HttpPost(char *httphost);
 
 String HttpGet(char *httphost);
+
+void DecodeJson(const String payload);
+
 #endif
