@@ -10,7 +10,7 @@ import CommunityIcon from './icons/IconCommunity.vue'
 import SupportIcon from './icons/IconSupport.vue'
 import { ElScrollbar } from 'element-plus'
 import axios from 'axios'
-import { Plus, ForkSpoon, Delete} from '@element-plus/icons-vue'
+import { Plus, ForkSpoon, Delete } from '@element-plus/icons-vue'
 
 import { Timer } from '@element-plus/icons-vue'
 import { table } from 'console'
@@ -19,10 +19,9 @@ interface User {
   time: string
   date: string
   name: string
-  amount : string
+  amount: string
 }
-const tableData = reactive<User[]> ([
-])
+const tableData = reactive<User[]>([])
 
 const maxAmount = ref(5)
 const minAmount = ref(1)
@@ -41,7 +40,16 @@ const marks = reactive<Marks>({
   5: '5'
 })
 const timerSetting_value = ref(new Date())
-const dayInital = ['EveryDay','Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const dayInital = [
+  'EveryDay',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday'
+]
 const daySelectionValue = ref([0])
 const dayOptions = ref(
   Array.from({ length: 7 }).map((_, idx) => ({
@@ -51,7 +59,8 @@ const dayOptions = ref(
 )
 
 const sendFeedInfo = () => {
-  axios.post('/feed', {
+  axios
+    .post('/feed', {
       amount: feedAmount.value.toString()
     })
     .then((response) => console.log(response))
@@ -60,19 +69,21 @@ const sendFeedInfo = () => {
 }
 
 const updateFeedSchedule = () => {
-  let timeArr = [];
-  let dateArr = [];
-  let amountArr = [];
-  tableData.forEach(element => {
-    timeArr.push(element.time);
-    dateArr.push(element.date);
-    amountArr.push(element.amount);
-  });
-  axios.post('/feedSchedule',{
-    time:timeArr,
-    date:dateArr,
-    amount:amountArr,
-  }).then((response)=>console.log(response))
+  let timeArr = []
+  let dateArr = []
+  let amountArr = []
+  tableData.forEach((element) => {
+    timeArr.push(element.time)
+    dateArr.push(element.date)
+    amountArr.push(element.amount)
+  })
+  axios
+    .post('/feedSchedule', {
+      time: timeArr,
+      date: dateArr,
+      amount: amountArr
+    })
+    .then((response) => console.log(response))
 }
 
 const updateDaySelectionEvent = () => {
@@ -82,38 +93,34 @@ const updateDaySelectionEvent = () => {
 
 const addAlarm = () => {
   // 新增設定到清單
-  let timeString = timerSetting_value.value.toTimeString();
+  let timeString = timerSetting_value.value.toTimeString()
   timeString = timeString.split(' ')[0]
 
-  console.log(timeString);
-  let dayString = "";
+  console.log(timeString)
+  let dayString = ''
 
-  daySelectionValue.value.forEach(element => {
-    dayString = dayString +', '+ dayInital[element];
-  });
-  if(dayString.length > 0)
-  {
-    dayString = dayString.substring(2, dayString.length);
+  daySelectionValue.value.forEach((element) => {
+    dayString = dayString + ', ' + dayInital[element]
+  })
+  if (dayString.length > 0) {
+    dayString = dayString.substring(2, dayString.length)
   }
-  tableData.push(
-  {
-    time:`${timeString}`,//,'2016-05-03',
-    date:  `${dayString}`,//,'2016-05-03',
+  tableData.push({
+    time: `${timeString}`, //,'2016-05-03',
+    date: `${dayString}`, //,'2016-05-03',
     name: `Alarm ${tableData.length}`,
     amount: `${feedAmount.value}`
   })
 
-  updateFeedSchedule();
+  updateFeedSchedule()
 }
 
 const handleAlarmEdit = (index: number, row: User) => {
   console.log(index, row)
-
 }
 const handleAlarmDelete = (index: number, row: User) => {
-  console.log(index, row);
-  tableData.splice(index,1);
-
+  console.log(index, row)
+  tableData.splice(index, 1)
 }
 </script>
 
@@ -132,9 +139,24 @@ const handleAlarmDelete = (index: number, row: User) => {
     </template>
     <template #heading>Control</template>
     <div>
-      <el-button type="primary" class="FeedBtn" :icon="ForkSpoon" @click="sendFeedInfo" round
-        >Feed</el-button
+      <el-popconfirm
+        confirm-button-text="Yes"
+        cancel-button-text="No"
+        :icon="InfoFilled"
+        width="250"
+        icon-color="#626AEF"
+        title="Are you sure to you want to feed hoohoo this amount?"
+        @confirm="sendFeedInfo"
+        @cancel="cancelEvent"
       >
+          <template #reference>
+        <!-- <el-button type="primary" class="FeedBtn" :icon="ForkSpoon" @click="sendFeedInfo" round
+          >Feed</el-button -->
+          <el-button type="primary" class="FeedBtn" :icon="ForkSpoon"  round
+          >Feed</el-button
+        >
+        </template>
+      </el-popconfirm>
       <span> </span>
       <div class="slider-demo-block">
         <el-slider
@@ -187,7 +209,6 @@ const handleAlarmDelete = (index: number, row: User) => {
 
       <!-- 顯示設定清單 -->
       <div>
-
         <el-table :data="tableData" style="width: 100%">
           <el-table-column label="Time" width="120">
             <template #default="scope">
@@ -197,18 +218,16 @@ const handleAlarmDelete = (index: number, row: User) => {
               </div>
             </template>
           </el-table-column>
-                    <el-table-column label="Repeat" width="300">
+          <el-table-column label="Repeat" width="300">
             <template #default="scope">
               <div style="display: flex; align-items: center">
-            
                 <span style="margin-left: 10px">{{ scope.row.date }}</span>
               </div>
             </template>
           </el-table-column>
-                    <el-table-column label="Amount" width="80">
+          <el-table-column label="Amount" width="80">
             <template #default="scope">
               <div style="display: flex; align-items: center">
-            
                 <span style="margin-left: 10px">{{ scope.row.amount }}</span>
               </div>
             </template>
@@ -218,11 +237,10 @@ const handleAlarmDelete = (index: number, row: User) => {
               <el-popover effect="light" trigger="hover" placement="top" width="auto">
                 <template #default>
                   <div>name: {{ scope.row.name }}</div>
-                  
                 </template>
                 <template #reference>
                   <!-- <el-tag>{{ scope.row.name }}</el-tag> -->
-                    <el-input v-model=scope.row.name placeholder="name" />
+                  <el-input v-model="scope.row.name" placeholder="name" />
                 </template>
               </el-popover>
             </template>
@@ -232,8 +250,14 @@ const handleAlarmDelete = (index: number, row: User) => {
               <el-button size="small" @click="handleAlarmEdit(scope.$index, scope.row)"
                 >Edit</el-button
               >
-              <el-button size="small" type="danger" @click="handleAlarmDelete(scope.$index, scope.row)" :icon="Delete" circle />
-<!-- 
+              <el-button
+                size="small"
+                type="danger"
+                @click="handleAlarmDelete(scope.$index, scope.row)"
+                :icon="Delete"
+                circle
+              />
+              <!-- 
               <el-button
                 size="small"
                 type="danger"
