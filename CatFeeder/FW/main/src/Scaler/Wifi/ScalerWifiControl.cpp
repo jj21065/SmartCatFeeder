@@ -3,13 +3,16 @@
 #include "ScalerWifiControl.h"
 
 WiFiManager wm; // 建立WiFi管理員物件
+const char *fingerprint = "";
+const char *googlehost = "script.google.com";
+const int httpsPort = 443;
 
 unsigned int timeout = 120; // Wi-Fi管理員的運作秒數
 unsigned int startTime = millis();
 bool portalRunning = false;
 bool startAP = true; // 僅啟動網站伺服器，設成true則啟動AP和網站伺服器。
 /// end wifi manager
-extern const char *host = "laifuHost";
+extern const char *host = "JMHost";
 extern ESP8266WebServer server(1025);
 
 void ScalerWifiMangagerInitial()
@@ -104,8 +107,9 @@ void InitialWifiSearch()
   delay(100);
 }
 
-void HttpPost(char *httphost)
+String HttpPost(char *httphost, String dataString)
 {
+  String payload = "fail";
   if ((WiFi.status() == WL_CONNECTED))
   {
 
@@ -120,7 +124,7 @@ void HttpPost(char *httphost)
     Serial.print("[HTTP] POST...\n");
     // start connection and send HTTP header and body
     // int httpCode = http.POST("{\"hello\":\"world\"}");
-    int httpCode = http.POST("");
+    int httpCode = http.POST(dataString);
     // httpCode will be negative on error
     if (httpCode > 0)
     {
@@ -130,11 +134,11 @@ void HttpPost(char *httphost)
       // file found at server
       if (httpCode == HTTP_CODE_OK)
       {
-        const String &payload = http.getString();
+        payload = http.getString();
         Serial.println("received payload:\n<<");
         Serial.println(payload);
         Serial.println(">>");
-        DecodeJson(payload);
+        // DecodeJson(payload);
       }
     }
     else
@@ -144,9 +148,10 @@ void HttpPost(char *httphost)
 
     http.end();
   }
+  return payload;
 }
 
-String HttpGet(char *httphost)
+String HttpGet(String httphost)
 {
   HTTPClient http;
   WiFiClient client;
@@ -175,15 +180,109 @@ String HttpGet(char *httphost)
   return payload;
 }
 
-void DecodeJson(const String payload)
+String HttpGetGoogleScriptSecure(String url)
+{
+
+  String payload = "fail";
+  HTTPSRedirect *client = nullptr;
+
+  // Use HTTPSRedirect class to create a new TLS connection
+  client = new HTTPSRedirect(httpsPort);
+  client->setInsecure();
+  client->setPrintResponseBody(true);
+  client->setContentTypeHeader("application/json");
+
+  // Try to connect for a maximum of 5 times
+  bool flag = false;
+  for (int i = 0; i < 5; i++)
+  {
+    int retval = client->connect(googlehost, httpsPort);
+    if (retval == 1)
+    {
+      flag = true;
+      break;
+    }
+    else
+      Serial.println("Connection failed. Retrying...");
+  }
+
+  if (!flag)
+  {
+    Serial.print("Could not connect to server: ");
+    Serial.println(googlehost);
+    Serial.println("Exiting...");
+    return payload;
+  }
+
+  if (client->GET(url, googlehost))
+  {
+    Serial.print("response phrase:");
+    Serial.println(client->getReasonPhrase());
+    Serial.print("response body:");
+    Serial.print(client->getResponseBody());
+    payload = client->getResponseBody();
+  }
+
+  delete client;
+  return payload;
+}
+
+String HttpPostGoogleScriptSecure(String url, String payload)
+{
+
+  String result = "fail";
+  HTTPSRedirect *client = nullptr;
+
+  // Use HTTPSRedirect class to create a new TLS connection
+  client = new HTTPSRedirect(httpsPort);
+  client->setInsecure();
+  client->setPrintResponseBody(true);
+  client->setContentTypeHeader("application/json");
+
+  // Try to connect for a maximum of 5 times
+  bool flag = false;
+  for (int i = 0; i < 5; i++)
+  {
+    int retval = client->connect(googlehost, httpsPort);
+    if (retval == 1)
+    {
+      flag = true;
+      break;
+    }
+    else
+      Serial.println("Connection failed. Retrying...");
+  }
+
+  if (!flag)
+  {
+    Serial.print("Could not connect to server: ");
+    Serial.println(googlehost);
+    Serial.println("Exiting...");
+    return result;
+  }
+
+  if (client->POST(url, googlehost, payload, false))
+  {
+    Serial.print("response phrase:");
+    Serial.println(client->getReasonPhrase());
+    Serial.print("response body:");
+    Serial.print(client->getResponseBody());
+    result = client->getResponseBody();
+  }
+
+  delete client;
+  return result;
+}
+
+String DecodeJson(const String payload, String key)
 {
   JSONVar myObject = JSON.parse(payload);
-  String decodeArr[5];
+
   // JSON.typeof(jsonVar) can be used to get the type of the var
   if (JSON.typeof(myObject) == "undefined")
   {
     Serial.println("Parsing input failed!");
-    return;
+    return "Parsing input failed!";
   }
 
   Serial.print("JSON object = ");
@@ -198,14 +297,12 @@ void DecodeJson(const String payload)
     Serial.print(keys[i]);
     Serial.print(" = ");
     Serial.println(value);
-    decodeArr[i] = String(value);
+    if (keys[i] == key)
+    {
+      return myObject[key];
+    }
   }
-  Serial.print("1 = ");
-  Serial.println(decodeArr[0]);
-  Serial.print("2 = ");
-  Serial.println(decodeArr[1]);
-  Serial.print("3 = ");
-  Serial.println(decodeArr[2]);
+  return "not found key";
 }
 // search for wifi name (test, not yet ready)
 void kernelWifiSearch()

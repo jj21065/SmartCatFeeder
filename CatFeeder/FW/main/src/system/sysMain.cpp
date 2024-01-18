@@ -28,7 +28,7 @@ void sysMainInitial()
     pinMode(12, OUTPUT); // D6
     digitalWrite(12, HIGH);
 
-    UserCommonExtruderInitial();
+    // UserCommonExtruderInitial();
 
     UserCommonWebServerSettingInitial();
 

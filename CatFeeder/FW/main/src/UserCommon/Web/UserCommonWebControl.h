@@ -6,6 +6,14 @@ void UserCommonWebServerSettingInitial();
 
 void UserCommonWebServerHandler();
 
+void UserCommonWebGetGoogleSheet(String dataString);
+
+void UserCommonWebPostGoogleSheet();
+
 // void UserCommonWebCurrentTime()
+
+void GetFeedSchedule();
+
+void UpdateFeedSchedule();
 
 #endif

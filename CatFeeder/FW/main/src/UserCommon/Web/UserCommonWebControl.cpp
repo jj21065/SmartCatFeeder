@@ -5,15 +5,15 @@
 #include "UserCommonWebControl.h"
 #include "../../Scaler/ScalerInclude.h"
 #include "../Extruder/UserCommonExtruder.h"
+#include <FS.h>
 // const byte LED_PIN = 2;
-const byte PWM_PIN = 0;
-// GET/ POST API
-void PostUpdateFeed()
+
+void SingleFeed()
 {
     String payload = server.arg(0);
     // UserCommonExtruderRun();
     JSONVar myObject = JSON.parse(payload);
-
+    Serial.println(payload);
     // JSON.typeof(jsonVar) can be used to get the type of the var
     if (JSON.typeof(myObject) == "undefined")
     {
@@ -29,13 +29,12 @@ void PostUpdateFeed()
     if (keys.length() > 0)
     {
         JSONVar value = myObject["amount"];
+        UserCommonManualFeedOutput(((String)value).toInt());
         server.send(200, "text/plain", "POST body was:\n" + server.arg("plain"));
     }
-
-    UserCommonManualFeedOutput(((String)value).toInt());
 }
 
-void PostUpdateFeedSchedule()
+void UpdateFeedSchedule()
 {
     String payload = server.arg(0);
     // DecodeJson(payload);
@@ -53,18 +52,65 @@ void PostUpdateFeedSchedule()
 
     // myObject.keys() can be used to get an array of all the keys in the object
     JSONVar keys = myObject.keys();
-
+    String dataString = "?data=" + payload;
+    // String dataString = "{\"data\":" + (String)myObject;
     for (int i = 0; i < keys.length(); i++)
     {
         JSONVar value = myObject[keys[i]];
         Serial.print(keys[i]);
         Serial.print(" = ");
         Serial.println(value);
+
         // decodeArr[i] = String(value);
     }
+    // UserCommonWebGetGoogleSheet(dataString);
 
+    String url = "/macros/s/AKfycbz8IRskqVWcFiz371rhmXI2bqDNgxYMUYoHQSrq2SuVyCk8Ik9hfUnMbMdaHhW0vRBNHw/exec";
+    url = url + dataString;
+    // dataString = dataString + "}";
+    // String result = HttpPostGoogleScriptSecure(url, dataString);
+    String result = HttpGetGoogleScriptSecure(url);
     server.send(200, "text/plain", "POST body was:\n" + server.arg("plain"));
 }
+
+void GetFeedSchedule()
+{
+    // String file_name = "feedSchedule.json"; https://script.google.com
+    // String readData = "";
+    // if (SPIFFS.exists(file_name))
+    // {
+    //     Serial.print(file_name);
+    //     Serial.println(" FOUND.");
+    //     // 建立File对象用于从SPIFFS中读取文件
+    //     File dataFile = SPIFFS.open(file_name, "r");
+    //     // 读取文件内容并且通过串口监视器输出文件信息
+    //     for (int i = 0; i < dataFile.size(); i++)
+    //     {
+    //         // Serial.print((char)dataFile.read());
+    //         readData = readData + (char)dataFile.read();
+    //     }
+    //     Serial.println(readData);
+    //     // 完成文件读取后关闭文件
+    //     dataFile.close();
+    // }
+    String url = "/macros/s/AKfycbxP0dnI2RADOTypjl0D1RiygBlZMCpPt6oDs4NqYxPVeMgookP8QR7dYzotNpICsAMXCg/exec";
+    String payload = HttpGetGoogleScriptSecure(url);
+    String nameKey = "name";
+    String dateKey = "date";
+    String timeKey = "time";
+    String amountKey = "amount";
+    String nameArray = DecodeJson(payload, nameKey);
+    String dateArray = DecodeJson(payload, nameKey);
+    String timeArray = DecodeJson(payload, nameKey);
+    String amountArray = DecodeJson(payload, nameKey);
+    Serial.println(nameArray);
+    Serial.println(dateArray);
+    Serial.println(timeArray);
+    Serial.println(amountArray);
+
+    server.send(200, "text/plain", payload);
+}
+
 // 定義處理首頁請求的自訂函式
 String getContentType(String filename)
 {
@@ -181,8 +227,9 @@ void UserCommonWebServerSettingInitial()
                 // else
                 //     UserCommonTestDigitalOutput(false);
                 Serial.println(state); });
-    server.on("/feed", PostUpdateFeed);
-    server.on("/feedSchedule", PostUpdateFeedSchedule);
+    server.on("/feed", SingleFeed);
+    server.on("/feedSchedule", UpdateFeedSchedule);
+    server.on("/getfeedScheduleInfo", GetFeedSchedule);
 
     // 處理根路徑以及「不存在的」路徑
     server.onNotFound([]()
@@ -195,6 +242,8 @@ void UserCommonWebServerSettingInitial()
 
     MDNS.setInstanceName("Jake's ESP8266");
     MDNS.addService("http", "tcp", 80);
+
+    GetFeedSchedule();
 }
 
 void UserCommonWebCurrentTime()
@@ -215,4 +264,28 @@ void UserCommonWebServerHandler()
     ScalerDoWiFiManager();
     ScalerWebServerHandler();
     // getCurrentTime();
+}
+
+void UserCommonWebGetGoogleSheet(String dataString)
+{
+    // String payload = HttpGet("https://script.google.com/macros/s/AKfycbwqVJwXG3KAgCvJ1KJcMPd_Yv2L5TjIUUw3XQy3BA7qX-8a3J1_gY1K0KmURO5MWciASA/exec");
+    // String dataString = "&data={time=12:00, date=EveryDay, amount=1}";
+    // String dataString = "&data={\"time\":[\"12:00\",\"12:01\"],\"date\":[\"EveryDay\",\"EveryDay\"],\"amount\":[1,2]}";
+    // String url = "http://api.pushingbox.com/pushingbox?devid=vD5E8B2C1108EF1F";
+
+    String url = "/macros/s/AKfycbwqVJwXG3KAgCvJ1KJcMPd_Yv2L5TjIUUw3XQy3BA7qX-8a3J1_gY1K0KmURO5MWciASA/exec";
+    url = url + dataString;
+    // String payload = HttpGet(url);
+
+    String payload = HttpGetGoogleScriptSecure(url);
+
+    Serial.println("Http Response: " + payload);
+}
+
+void UserCommonWebPostGoogleSheet()
+{
+    // String dataString = "&data=testpost";
+    // // String payload = HttpPost("https://script.google.com/macros/s/AKfycbwqVJwXG3KAgCvJ1KJcMPd_Yv2L5TjIUUw3XQy3BA7qX-8a3J1_gY1K0KmURO5MWciASA/exec", dataString);
+    // String payload = HttpPost("http://api.pushingbox.com/pushingbox?devid=vD5E8B2C1108EF1F", dataString);
+    // Serial.println("Http Response: " + payload);
 }

@@ -8,12 +8,14 @@ import ToolingIcon from './icons/IconTooling.vue'
 import EcosystemIcon from './icons/IconEcosystem.vue'
 import CommunityIcon from './icons/IconCommunity.vue'
 import SupportIcon from './icons/IconSupport.vue'
-import { ElScrollbar } from 'element-plus'
+// import { ElScrollbar } from 'element-plus'
 import axios from 'axios'
 import { Plus, ForkSpoon, Delete } from '@element-plus/icons-vue'
 
 import { Timer } from '@element-plus/icons-vue'
-import { table } from 'console'
+// import { table } from 'console'
+// import { Header } from 'element-plus/es/components/table-v2/src/components'
+//import { METHODS } from 'http'
 
 interface User {
   time: string
@@ -65,22 +67,44 @@ const sendFeedInfo = () => {
     })
     .then((response) => console.log(response))
 
-  // post("/feed", { feed: state });
+  getFeedSchedule();
+    //   axios
+    // .post('https://script.google.com/macros/s/AKfycbwqVJwXG3KAgCvJ1KJcMPd_Yv2L5TjIUUw3XQy3BA7qX-8a3J1_gY1K0KmURO5MWciASA/exec', 
+    //   JSON.stringify(payload)
+    // )
+    // .then((response) => console.log(response))
+  //  fetch("https://script.google.com/macros/s/AKfycbwqVJwXG3KAgCvJ1KJcMPd_Yv2L5TjIUUw3XQy3BA7qX-8a3J1_gY1K0KmURO5MWciASA/exec", 
+  //   {mode: 'no-cors',
+  //   method:'get'
+  //   },  
+  // ); 
+
+}
+
+const getFeedSchedule = () => {
+  
+  axios
+    .post('/getfeedScheduleInfo')
+    .then((response) => console.log(response))
+
 }
 
 const updateFeedSchedule = () => {
   let timeArr = []
   let dateArr = []
   let amountArr = []
+  let nameArr = []
   tableData.forEach((element) => {
     timeArr.push(element.time)
     dateArr.push(element.date)
     amountArr.push(element.amount)
+    nameArr.push(element.name)
   })
   axios
     .post('/feedSchedule', {
       time: timeArr,
       date: dateArr,
+      name : nameArr,
       amount: amountArr
     })
     .then((response) => console.log(response))
@@ -99,20 +123,20 @@ const addAlarm = () => {
   console.log(timeString)
   let dayString = ''
 
-  daySelectionValue.value.forEach((element) => {
-    dayString = dayString + ', ' + dayInital[element]
-  })
-  if (dayString.length > 0) {
-    dayString = dayString.substring(2, dayString.length)
-  }
+  // daySelectionValue.value.forEach((element) => {
+  //   dayString = dayString + ',' + dayInital[element]
+  // })
+  
+  dayString = daySelectionValue.value.map(x => dayInital[x]).join(",");
+  console.log(dayString);
   tableData.push({
     time: `${timeString}`, //,'2016-05-03',
     date: `${dayString}`, //,'2016-05-03',
-    name: `Alarm ${tableData.length}`,
+    name: `Alarm${tableData.length}`,
     amount: `${feedAmount.value}`
   })
 
-  updateFeedSchedule()
+  updateFeedSchedule();
 }
 
 const handleAlarmEdit = (index: number, row: User) => {
@@ -120,7 +144,8 @@ const handleAlarmEdit = (index: number, row: User) => {
 }
 const handleAlarmDelete = (index: number, row: User) => {
   console.log(index, row)
-  tableData.splice(index, 1)
+  tableData.splice(index, 1);
+  updateFeedSchedule();
 }
 </script>
 

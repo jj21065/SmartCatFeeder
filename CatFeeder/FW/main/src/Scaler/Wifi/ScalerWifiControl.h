@@ -6,6 +6,7 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266mDNS.h>
 #include <FS.h>
+#include "HTTPSRedirect/HTTPSRedirect.h"
 #include "../../../PinshareSetting.h"
 
 // wifi manager
@@ -23,10 +24,14 @@ void ScalerDoWiFiManager();
 void ScalerWebServerHandler();
 
 void InitialWifiSearch();
-void HttpPost(char *httphost);
 
-String HttpGet(char *httphost);
+String HttpPost(char *httphost, String dataString);
 
-void DecodeJson(const String payload);
+String HttpGet(String httphost);
 
+String DecodeJson(const String payload, String key);
+
+String HttpGetGoogleScriptSecure(String url);
+
+String HttpPostGoogleScriptSecure(String url, String payload);
 #endif
