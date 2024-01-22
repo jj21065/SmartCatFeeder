@@ -29,7 +29,7 @@ String HttpPost(char *httphost, String dataString);
 
 String HttpGet(String httphost);
 
-String DecodeJson(const String payload, String key);
+String DecodeJson(const String payload, String key, JSONVar &jsonobj);
 
 String HttpGetGoogleScriptSecure(String url);
 

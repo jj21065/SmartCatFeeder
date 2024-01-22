@@ -1,6 +1,7 @@
 
 #include <Arduino.h>
 #include "sysMain.h"
+#include "sysTimer.h"
 #include "../../src/UserCommon/Web/UserCommonWebControl.h"
 #include "../../src/UserCommon/Extruder/UserCommonExtruder.h"
 
@@ -15,7 +16,7 @@ void sysMainProcess()
 
         UserCommonExtruderHandler();
 
-        delay(200);
+        sysTimerEventHander();
     }
 }
 
@@ -32,5 +33,6 @@ void sysMainInitial()
 
     UserCommonWebServerSettingInitial();
 
+    sysTimerEventActive(_SYSTEM_CHECK_SCHEDULE);
     // UserCommonTimerActive();
 }

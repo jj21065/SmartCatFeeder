@@ -274,7 +274,7 @@ String HttpPostGoogleScriptSecure(String url, String payload)
   return result;
 }
 
-String DecodeJson(const String payload, String key)
+String DecodeJson(const String payload, String key, JSONVar &jsonobj)
 {
   JSONVar myObject = JSON.parse(payload);
 
@@ -294,12 +294,16 @@ String DecodeJson(const String payload, String key)
   for (int i = 0; i < keys.length(); i++)
   {
     JSONVar value = myObject[keys[i]];
-    Serial.print(keys[i]);
-    Serial.print(" = ");
-    Serial.println(value);
+
     if (keys[i] == key)
     {
-      return myObject[key];
+      Serial.print(keys[i]);
+      Serial.print(" = ");
+      Serial.println(value);
+
+      jsonobj = value;
+      // return "found";
+      return (String)value;
     }
   }
   return "not found key";

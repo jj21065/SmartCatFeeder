@@ -1,13 +1,8 @@
 {
   "files.associations": {
-    "sysmain.h": "c",
-    "scalerinclude.h": "c",
-    "scalerwificontrol.h": "c",
-    "pinsharesetting.h": "c",
-    "sysinclude.h": "c",
-    "usercommoninclude.h": "c",
-    "usercommonwebcontrol.h": "c",
-    "usercommonextruder.h": "c"
+    "vector": "cpp",
+    "type_traits": "cpp",
+    "xtr1common": "cpp"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",

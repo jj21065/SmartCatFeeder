@@ -59,6 +59,11 @@ const dayOptions = ref(
     label: `${dayInital[idx % 10]}` //${idx}`,
   }))
 )
+  // 使用onMounted来注册生命周期钩子函数
+  onMounted(() => {
+    // 在组件挂载后执行初始化函数
+    getFeedSchedule();
+  });
 
 const sendFeedInfo = () => {
   axios
@@ -67,7 +72,6 @@ const sendFeedInfo = () => {
     })
     .then((response) => console.log(response))
 
-  getFeedSchedule();
     //   axios
     // .post('https://script.google.com/macros/s/AKfycbwqVJwXG3KAgCvJ1KJcMPd_Yv2L5TjIUUw3XQy3BA7qX-8a3J1_gY1K0KmURO5MWciASA/exec', 
     //   JSON.stringify(payload)
@@ -82,11 +86,38 @@ const sendFeedInfo = () => {
 }
 
 const getFeedSchedule = () => {
-  
+  let response: { data: any } ;
   axios
     .post('/getfeedScheduleInfo')
-    .then((response) => console.log(response))
+    .then((response) => {
+      console.log(response)
+       var responseData = response.data;
+  console.log(responseData)
+  tableData.length = 0;
+  let timeList = responseData.time
+  console.log(timeList)
+  
+  let dataLength = timeList.length;
+  let dateList = responseData.date
 
+  console.log(dateList)
+  let amountList = responseData.amount;
+  console.log(responseData.amount)
+  let nameList = responseData.name
+
+  for (let i = 0; i < dataLength; i++) {
+
+  tableData.push({
+    time: `${timeList[i]}`, //,'2016-05-03',
+    date: `${dateList[i]}`, //,'2016-05-03',
+    name: `${nameList[i]}`,
+    amount: `${amountList[i]}`
+  })
+
+  }
+      })
+
+ 
 }
 
 const updateFeedSchedule = () => {
