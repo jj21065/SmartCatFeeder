@@ -393,7 +393,12 @@ void UserCommonCheckFeedSchedule()
 
                 Serial.print(stScheduleDataList[i].name);
                 Serial.println(" timer activated!!");
+                UserCommonManualFeedOutput(stScheduleDataList[i].amount);
             }
+        }
+        else
+        {
+            stScheduleDataList[i].isDone = false;
         }
 
         // Serial.println(amountArray);
