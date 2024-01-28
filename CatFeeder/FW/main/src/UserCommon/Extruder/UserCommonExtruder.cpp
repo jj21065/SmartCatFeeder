@@ -77,7 +77,7 @@ void UserCommonManualFeedOutput(int amount)
     Serial.print("feed amount: ");
     Serial.println(amount);
     pinMode(2, OUTPUT);
-    digitalWrite(2, HIGH);
+    digitalWrite(2, LOW);
     if (amount > 0)
     {
         pinMode(14, OUTPUT); // D5 blue
@@ -99,5 +99,5 @@ void UserCommonManualFeedOutput(int amount)
             Serial.println(i);
         }
     }
-    digitalWrite(2, LOW);
+    digitalWrite(2, HIGH);
 }

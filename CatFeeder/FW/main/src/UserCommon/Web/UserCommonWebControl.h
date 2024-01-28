@@ -12,7 +12,7 @@ void UserCommonWebGetGoogleSheet(String dataString);
 
 void UserCommonWebPostGoogleSheet();
 
-void UserCommonWebCurrentTime(String &hrString, String &minString, String &secString);
+void UserCommonWebCurrentTime(String &hrString, String &minString, String &secString, String &dayString);
 
 void GetFeedSchedule();
 

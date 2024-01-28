@@ -15,15 +15,20 @@ void UpdateScheduleDatatoLocal(String payload)
     String dateKey = "date";
     String timeKey = "time";
     String amountKey = "amount";
+    String enableKey = "enable";
     JSONVar nameArray;
     JSONVar dateArray;
     JSONVar timeArray;
     JSONVar amountArray;
+    JSONVar enableArray;
     DecodeJson(payload, nameKey, nameArray);
     DecodeJson(payload, dateKey, dateArray);
     DecodeJson(payload, timeKey, timeArray);
     DecodeJson(payload, amountKey, amountArray);
+    DecodeJson(payload, enableKey, enableArray);
     stScheduleDataList.clear();
+    if (nameArray == null || dateArray == null || timeArray == null || amountArray == null || enableArray == null)
+        return;
 
     int dataLength = nameArray.length();
     for (int i = 0; i < dataLength; i++)
@@ -33,7 +38,14 @@ void UpdateScheduleDatatoLocal(String payload)
         stdata.date = ((String)dateArray[i]);
         stdata.time = ((String)timeArray[i]);
         stdata.amount = (atoi(amountArray[i]));
-        stdata.enable = (true);
+        if (((String)enableArray[i]).indexOf("true") == -1)
+        {
+            stdata.enable = false;
+        }
+        else
+        {
+            stdata.enable = true;
+        }
         stdata.isDone = (false);
         // Serial.println(amountArray);
         stScheduleDataList.push_back(stdata);
@@ -44,6 +56,7 @@ void UpdateScheduleDatatoLocal(String payload)
         Serial.println(stScheduleDataList[i].date);
         Serial.println(stScheduleDataList[i].time);
         Serial.println(stScheduleDataList[i].amount);
+        Serial.println(stScheduleDataList[i].enable);
     }
 }
 
@@ -167,6 +180,26 @@ void GetFeedSchedule()
     server.send(200, "text/plain", payload);
 }
 
+void CheckAuthentication()
+{
+    String payload = server.arg(0);
+    JSONVar datajson;
+    JSONVar account, pswd;
+    DecodeJson(payload, "payload", datajson);
+    Serial.println(JSON.stringify(datajson));
+    DecodeJson(JSON.stringify(datajson), "account", account);
+    DecodeJson(JSON.stringify(datajson), "password", pswd);
+    if ((String)account == "jake" || (String)account == "miya")
+    {
+        if ((String)pswd == "0304")
+        {
+            server.send(200, "text/plain", "{\"result\":\"pass\"}");
+            return;
+        }
+    }
+    server.send(200, "text/plain", "{\"result\":\"fail\"}");
+}
+
 // 定義處理首頁請求的自訂函式
 String getContentType(String filename)
 {
@@ -286,7 +319,7 @@ void UserCommonWebServerSettingInitial()
     server.on("/feed", SingleFeed);
     server.on("/feedSchedule", UpdateFeedSchedule);
     server.on("/getfeedScheduleInfo", GetFeedSchedule);
-
+    server.on("/checkAuthentication", CheckAuthentication);
     // 處理根路徑以及「不存在的」路徑
     server.onNotFound([]()
                       {
@@ -302,15 +335,16 @@ void UserCommonWebServerSettingInitial()
     GetFeedSchedule();
 }
 
-void UserCommonWebCurrentTime(String &hrString, String &minString, String &secString)
+void UserCommonWebCurrentTime(String &hrString, String &minString, String &secString, String &dayString)
 {
     String payload = HttpGet("http://worldtimeapi.org/api/timezone/Asia/Taipei");
     // Parse the JSON response to get the UTC datetime
     // Note: You may need to use a JSON parsing library for more robust parsing
     int startIndex = payload.indexOf("\"datetime\":\"") + 12;
     int endIndex = payload.indexOf("\"day_of_week\"");
+    int nextIndex = payload.indexOf("\"day_of_year\"");
     String currentDateTime = payload.substring(startIndex, endIndex);
-
+    dayString = payload.substring(endIndex + 14, endIndex + 15);
     Serial.println("Current DateTime: " + currentDateTime);
     // Current DateTime : "," client_ip ":" 36.230.186.98 "," datetime ":" 2023 - 12 - 30T12 : 06 : 00.090198 + 08 : 00 "," day_of_week ":6," day_of_year ":364," dst ":false," dst_from ":null," dst_offset ":0," dst_until ":null," raw_offset ":28800," timezone ":" Asia / Taipei "," unixtime ":1703909160," utc_datetime ":"
     // 找到 "T" 的位置
@@ -336,6 +370,10 @@ void UserCommonWebCurrentTime(String &hrString, String &minString, String &secSt
 
     Serial.print("秒: ");
     Serial.println(secString);
+
+    Serial.print("day: ");
+    Serial.println(dayString);
+    //
 }
 
 void UserCommonWebServerHandler()
@@ -374,17 +412,94 @@ void UserCommonCheckFeedSchedule()
     String hrString = "";
     String minString = "";
     String secString = "";
-    UserCommonWebCurrentTime(hrString, minString, secString);
+    String dayString = "";
+    UserCommonWebCurrentTime(hrString, minString, secString, dayString);
     int currentHr = hrString.toInt();
     int currentMin = minString.toInt();
     int currentSec = secString.toInt();
-
+    int currentDay = dayString.toInt();
     for (int i = 0; i < stScheduleDataList.size(); i++)
     {
+        Serial.print("isDone ");
+        Serial.println(stScheduleDataList[i].isDone);
+        Serial.print("isEnable ");
+        Serial.println(stScheduleDataList[i].enable);
+        if (!stScheduleDataList[i].enable || stScheduleDataList[i].isDone)
+        {
+            continue;
+        }
+        Serial.println(stScheduleDataList[i].date);
+
         std::vector<String> timeData = StringSplit(stScheduleDataList[i].time, ':');
+        std::vector<String> dayData = StringSplit(stScheduleDataList[i].date, ',');
+
         int hr = timeData[0].toInt();
         int min = timeData[1].toInt();
         int sec = timeData[2].toInt();
+        bool isToday = false;
+        for (int dayIndex = 0; dayIndex < dayData.size(); dayIndex++)
+        {
+            // Serial.println(dayData[dayIndex]);
+            dayData[dayIndex].toLowerCase();
+            if (dayData[dayIndex] == "everyday")
+            {
+                isToday = true;
+                break;
+            }
+            if (dayData[dayIndex] == "monday")
+            {
+                if (currentDay == 1)
+                {
+                    isToday = true;
+                }
+            }
+            else if (dayData[dayIndex] == "tuesday")
+            {
+                if (currentDay = 2)
+                {
+                    isToday = true;
+                }
+            }
+            else if (dayData[dayIndex] == "wednesday")
+            {
+                if (currentDay = 3)
+                {
+                    isToday = true;
+                }
+            }
+            else if (dayData[dayIndex] == "thusday")
+            {
+                if (currentDay = 4)
+                {
+                    isToday = true;
+                }
+            }
+            else if (dayData[dayIndex] == "friday")
+            {
+                if (currentDay = 5)
+                {
+                    isToday = true;
+                }
+            }
+            else if (dayData[dayIndex] == "saturday")
+            {
+                if (currentDay = 6)
+                {
+                    isToday = true;
+                }
+            }
+            else if (dayData[dayIndex] == "sunday")
+            {
+                if (currentDay = 0)
+                {
+                    isToday = true;
+                }
+            }
+        }
+        if (!isToday)
+        {
+            continue;
+        }
         if (hr == currentHr && min == currentMin)
         {
             if (!stScheduleDataList[i].isDone)
@@ -400,7 +515,6 @@ void UserCommonCheckFeedSchedule()
         {
             stScheduleDataList[i].isDone = false;
         }
-
         // Serial.println(amountArray);
     }
 }

@@ -14,7 +14,7 @@ void sysMainProcess()
 
         UserCommonWebServerHandler();
 
-        UserCommonExtruderHandler();
+        // UserCommonExtruderHandler();
 
         sysTimerEventHander();
     }
@@ -22,6 +22,9 @@ void sysMainProcess()
 
 void sysMainInitial()
 {
+    // led off
+    pinMode(2, OUTPUT);
+    digitalWrite(2, HIGH);
 
     pinMode(14, OUTPUT); // D5
     digitalWrite(14, HIGH);
